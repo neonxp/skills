@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>__MINDCODE_TITLE__</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		html {
+			font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+				'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+		}
+
+		#mindmap {
+			display: block;
+			width: 100vw;
+			height: 100vh;
+		}
+
+		.markmap-dark {
+			background: #27272a;
+			color: white;
+		}
+	</style>
+	<style>
+__MINDCODE_CSS__
+	</style>
+</head>
+
+<body>
+	<script id="mindcode-md" type="text/markdown">
+__MINDCODE_MARKDOWN__
+	</script>
+	<svg id="mindmap"></svg>
+	<script>__MINDCODE_D3__</script>
+	<script>__MINDCODE_LIB__</script>
+	<script>__MINDCODE_VIEW__</script>
+	<script>__MINDCODE_TOOLBAR__</script>
+	<script>
+		(() => {
+			const md = document.getElementById('mindcode-md').textContent.trimStart();
+			const { Transformer, Markmap, deriveOptions, Toolbar } = window.markmap;
+			const { root, frontmatter } = new Transformer().transform(md);
+			const mm = Markmap.create('svg#mindmap', deriveOptions({
+				colorFreezeLevel: 2,
+				maxWidth: 300,
+				initialExpandLevel: 3,
+				...(frontmatter && frontmatter.markmap),
+			}), root);
+			mm.fit();
+			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				document.documentElement.classList.add('markmap-dark');
+			}
+			const toolbar = new Toolbar();
+			toolbar.attach(mm);
+			const el = toolbar.render();
+			el.setAttribute('style', 'position:absolute;bottom:20px;right:20px');
+			document.body.append(el);
+		})();
+	</script>
+</body>
+
+</html>
