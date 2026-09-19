@@ -10,7 +10,34 @@
 
 #### `internal/orders` — жизненный цикл заказа, saga выплат
 
+##### Order (БД: таблица orders)
+
+- id (string, UUID) — идентификатор заказа
+- buyer_id (string) — заказчик
+- executor_id (string, nullable) — назначенный исполнитель
+- status (enum: new/paid/in_work/done/cancelled) — состояние
+- total (int, копейки) — сумма к оплате
+- created_at, updated_at (timestamp) — служебные метки
+
+##### CreateOrderRequest (DTO API)
+
+- service_id (string) — услуга из каталога
+- comment (string) — пожелания заказчика
+
 #### `internal/billing` — счета, тарифы, эквайринг ЮKassa
+
+##### Invoice (БД: таблица invoices)
+
+- id (string, UUID) — идентификатор счёта
+- order_id (string) — заказ-основание
+- amount (int, копейки) — сумма
+- state (enum: held/captured/refunded) — состояние холда
+
+##### OrderCreated (событие Kafka: топик `orders.events`)
+
+- order_id (string) — заказ
+- amount (int, копейки) — сумма
+- occurred_at (timestamp) — момент события
 
 #### `internal/users` — регистрация, сессии, роли
 
@@ -117,3 +144,41 @@
 ### Данные и бэкапы
 
 - ежедневный pg_dump в S3, retention 30 дней
+
+## Структура файлов
+
+### Корень
+
+- `README.md` — назначение проекта и запуск
+- `docker-compose.yml` — локальная инфраструктура: БД, Kafka, приложение
+- `Makefile` — типовые команды: сборка, миграции, генерация клиента
+
+### `cmd/server/`
+
+- `main.go` — точка входа: конфигурация, подключение зависимостей
+
+### `internal/api/`
+
+- `router.go` — регистрация маршрутов и middleware
+- `handlers_orders.go` — обработчики заказов
+- `openapi.yaml` — OpenAPI-спека, из неё генерируется `api-client`
+
+### `internal/orders/`
+
+- `service.go` — жизненный цикл заказа, saga
+- `repo.go` — запросы к таблице orders
+
+### `internal/billing/`
+
+- `service.go` — счета и холды
+- `psp_yookassa.go` — адаптер эквайринга ЮKassa
+- `webhooks.go` — приём колбэков PSP
+
+### `web/`
+
+- `icons/*.svg` (120 шт.) — иконки витрины и кабинета
+- `src/api/client.ts` — сгенерированный API-клиент
+
+### `docs/`
+
+- `architecture.md` — решение по saga выплат (ADR)
