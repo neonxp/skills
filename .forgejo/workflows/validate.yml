@@ -1,0 +1,24 @@
+name: validate-skills
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container:
+      image: gitrepo.ru/neonxp/base:1.1
+      options: --network host
+    env:
+      PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - name: Забор репозитория
+        run: git clone --depth 1 "${CI_REPOSITORY_URL:-https://gitrepo.ru/neonxp/skills.git}" /srv/skills
+
+      - name: Установка skills-ref (вендоренная копия)
+        run: python3 -m pip install --break-system-packages /srv/skills/.forgejo/vendor/skills-ref
+
+      - name: Валидация скиллов
+        run: cd /srv/skills && python3 /srv/skills/.forgejo/validate_all.py
