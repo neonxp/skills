@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CreoSkills SDD — дашборд активных спек</title>
+	<style>
+		:root {
+			--bg: #f6f7f9; --card: #ffffff; --fg: #1a1d21; --muted: #6b7280;
+			--line: #e5e7eb; --accent: #2563eb; --ok: #16a34a; --warn: #d97706;
+			--bad: #dc2626; --chip: #eef2f7; --soft: #f3f4f6; --link: #3b82f6;
+		}
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg: #18181b; --card: #27272a; --fg: #f4f4f5; --muted: #a1a1aa;
+				--line: #3f3f46; --accent: #60a5fa; --ok: #4ade80; --warn: #fbbf24;
+				--bad: #f87171; --chip: #333; --soft: #303034; --link: #93c5fd;
+			}
+		}
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html { font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+		body { background: var(--bg); color: var(--fg); padding: 24px; }
+		header { max-width: 960px; margin: 0 auto 16px; }
+		header h1 { font-size: 22px; display: flex; align-items: center; gap: 12px; }
+		header h1 .logo { height: 34px; width: auto; border-radius: 8px; }
+		header .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+		.notice { max-width: 960px; margin: 0 auto 16px; font-size: 12.5px; color: var(--muted);
+			background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+		nav.filters { max-width: 960px; margin: 0 auto 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+		nav.filters button { border: 1px solid var(--line); background: var(--card); color: var(--fg);
+			border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+		nav.filters button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+		.empty { max-width: 960px; margin: 0 auto; color: var(--muted); font-size: 14px;
+			border: 1px dashed var(--line); border-radius: 10px; padding: 24px; text-align: center; }
+		main { max-width: 960px; margin: 0 auto; display: grid; gap: 14px; }
+		.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+		.card .head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+		.card .id { font-family: ui-monospace, monospace; font-size: 13px; color: var(--muted); }
+		.card h2 { font-size: 17px; font-weight: 600; }
+		.badges { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+		.badge { font-size: 11.5px; border-radius: 999px; padding: 3px 9px; background: var(--chip); color: var(--muted); }
+		.badge.ok { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+		.badge.warn { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+		.steps { display: flex; gap: 4px; margin: 14px 0 4px; }
+		.steps .step { flex: 1; text-align: center; font-size: 11px; color: var(--muted); }
+		.steps .step .dot { height: 6px; border-radius: 999px; background: var(--line); margin-bottom: 5px; }
+		.steps .step.done .dot { background: var(--ok); }
+		.steps .step.cur .dot { background: var(--accent); }
+		.steps .step.cur { color: var(--accent); font-weight: 600; }
+		.meter { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+		.meter .bar { flex: 1; height: 7px; border-radius: 999px; background: var(--line); overflow: hidden; }
+		.meter .bar i { display: block; height: 100%; background: var(--ok); }
+		.questions { margin-top: 10px; font-size: 13px; color: var(--warn); }
+		.questions li { margin-left: 18px; color: var(--fg); }
+		.files { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+		.files a { font-family: ui-monospace, monospace; font-size: 12px; color: var(--link);
+			text-decoration: none; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+		details { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; }
+		details summary { cursor: pointer; padding: 9px 12px; font-size: 13.5px; font-weight: 600; user-select: none; }
+		details .md { padding: 4px 16px 14px; font-size: 14px; line-height: 1.55; }
+		.md h1 { font-size: 18px; margin: 12px 0 8px; } .md h2 { font-size: 16px; margin: 14px 0 6px; }
+		.md h3, .md h4 { font-size: 14.5px; margin: 12px 0 4px; }
+		.md p, .md ul, .md ol { margin: 6px 0; } .md ul, .md ol { padding-left: 22px; }
+		.md code { font-family: ui-monospace, monospace; font-size: 12.5px; background: var(--soft);
+			border-radius: 4px; padding: 1px 5px; }
+		.md pre { background: var(--soft); border: 1px solid var(--line); border-radius: 8px;
+			padding: 10px 12px; overflow-x: auto; margin: 8px 0; }
+		.md pre code { background: none; padding: 0; }
+		.md table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+		.md th, .md td { border: 1px solid var(--line); padding: 4px 9px; text-align: left; }
+		.md input[type=checkbox] { margin-right: 5px; }
+		.md a { color: var(--link); }
+		footer { max-width: 960px; margin: 20px auto 0; color: var(--muted); font-size: 12px; }
+		footer a { color: var(--link); }
+	</style>
+</head>
+
+<body>
+	<header>
+		<h1><img class="logo" src="__SDD_LOGO__" alt="CreoSkills">CreoSkills SDD — дашборд активных спек</h1>
+		<div class="sub">Сгенерировано: __SDD_GENERATED__</div>
+	</header>
+	<div class="notice">Витрина только для чтения: правки вносите в файлы
+		<code>specs/&lt;изменение&gt;/*.md</code>, затем пересоберите дашборд.</div>
+	<nav class="filters" id="filters"></nav>
+	<div class="empty" id="empty" hidden>Активных изменений нет. Создайте первое:
+		<code>spec-1-specify</code>.</div>
+	<main id="cards"></main>
+	<footer>Сгенерировано с помощью <a href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener">CreoSkills</a> · набор sdd · источник истины — файлы specs/, этот файл — витрина.</footer>
+
+	<script>__SDD_MARKED__</script>
+	<script id="data" type="application/json">__SDD_DASHBOARD_DATA__</script>
+	<script>
+		(() => {
+			const PHASES = ["Спека", "План", "Задачи", "Имплементация", "Готов к закрытию", "Закрыто"];
+			const { specs, generated } = JSON.parse(document.getElementById('data').textContent);
+			document.querySelector('.sub').textContent = 'Сгенерировано: ' + generated;
+			const render = md => marked.parse(md, { breaks: false, gfm: true });
+			const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+			const cards = document.getElementById('cards'), filters = document.getElementById('filters');
+			let cur = 0;
+			const phasesPresent = [...new Set(specs.map(s => s.phase))].sort((a, b) => a - b);
+			const buttons = [[0, 'Все'], ...phasesPresent.map(p => [p, p + '. ' + PHASES[p - 1]])];
+			for (const [p, label] of buttons) {
+				const b = document.createElement('button');
+				b.textContent = label; if (p === 0) b.className = 'active';
+				b.onclick = () => { cur = p; [...filters.children].forEach(x => x.className = '');
+					b.className = 'active'; show(); };
+				filters.append(b);
+			}
+			function show() {
+				cards.innerHTML = '';
+				const list = specs.filter(s => !cur || s.phase === cur);
+				document.getElementById('empty').hidden = list.length > 0;
+				for (const s of list) cards.insertAdjacentHTML('beforeend', card(s));
+			}
+			function card(s) {
+				const steps = PHASES.slice(0, 5).map((label, i) => {
+					const cls = i + 1 < s.phase ? 'done' : i + 1 === s.phase ? 'cur' : '';
+					return `<div class="step ${cls}"><div class="dot"></div>${i + 1}. ${label}</div>`;
+				}).join('');
+				const pct = s.tasks.total ? Math.round(100 * s.tasks.done / s.tasks.total) : 0;
+				const apct = s.acceptance.total ? Math.round(100 * s.acceptance.done / s.acceptance.total) : 0;
+				const q = s.openQuestions.length
+					? `<div class="questions">Открытые уточнения (${s.openQuestions.length}):<ul>${
+						s.openQuestions.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+				const files = s.artifacts.map(a =>
+					`<a href="${s.dir}/${a}">${a}</a>`).join('');
+				return `<section class="card">
+					<div class="head"><span class="id">${esc(s.id)}</span><h2>${esc(s.title)}</h2>
+						<span class="badges">
+							<span class="badge">Домен: ${esc(s.specDomain || '—')}</span>
+							${s.proposalStatus === 'согласовано' ? '' : '<span class="badge warn">спека: черновик</span>'}
+							${s.specStatus === 'согласовано' ? '<span class="badge ok">спека согласована</span>' : ''}
+							${s.openQuestions.length ? `<span class="badge warn">уточнения: ${s.openQuestions.length}</span>` : '<span class="badge ok">без уточнений</span>'}
+						</span></div>
+					<div class="steps">${steps}</div>
+					<div class="meter"><span>Задачи ${s.tasks.done}/${s.tasks.total}</span>
+						<div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div>
+					<div class="meter"><span>Критерии приёмки ${s.acceptance.done}/${s.acceptance.total}</span>
+						<div class="bar"><i style="width:${apct}%"></i></div><span>${apct}%</span></div>
+					${q}
+					<div class="files">${files}</div>
+					<details><summary>Зачем — proposal</summary><div class="md">${render(s.proposalMd)}</div></details>
+					<details><summary>Спека — требования и сценарии</summary><div class="md">${render(s.specMd)}</div></details>
+				</section>`;
+			}
+			show();
+		})();
+	</script>
+</body>
+
+</html>
