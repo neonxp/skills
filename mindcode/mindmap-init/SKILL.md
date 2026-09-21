@@ -59,18 +59,21 @@ metadata:
         Ветка «Структура файлов» лимита не имеет — только правила агрегации из
         `references/format.md`.
 
-- [ ]   5. Задай пользователю **единственный вопрос** (multiSelect, оба пункта предвыбраны):
+- [ ]   5. Задай пользователю **единственный вопрос** (multiSelect, первые два пункта
+       предвыбраны):
         - «Создать MINDMAP.html — автономный офлайн-просмотр карты?»
         - «Добавить в AGENTS.md сниппет про автозапуск mindmap-sync?»
+        - «Открыть MINDMAP.html в браузере после сборки?»
 
-        В неинтерактивной среде (задача из пайплайна, нет диалога) — выполни оба и сообщи об этом.
+        В неинтерактивной среде (задача из пайплайна, нет диалога) — выполни HTML
+        и сниппет, сообщи об этом; открытие в браузере пропусти.
 
 - [ ]   6. Если выбран HTML — собери его из шаблона скилла (подставь фактический путь
        к каталогу скилла `mindcode`):
 
         ```bash
         python3 - <<'EOF'
-        import pathlib, re
+        import base64, pathlib, re
         skill = pathlib.Path("<путь к каталогу скилла mindcode>")
         t = (skill / "assets/template.html").read_text()
         md = pathlib.Path("MINDMAP.md").read_text()
@@ -84,10 +87,15 @@ metadata:
                       ("__MINDCODE_LIB__", "markmap-lib.js"), ("__MINDCODE_VIEW__", "markmap-view.js"),
                       ("__MINDCODE_TOOLBAR__", "markmap-toolbar.js")]:
             t = t.replace(ph, (skill / "assets" / f).read_text())
+        logo = "data:image/png;base64," + base64.b64encode(
+            (skill / "assets" / "icon.png").read_bytes()).decode()
+        t = t.replace("__MINDCODE_LOGO__", logo)
         pathlib.Path("MINDMAP.html").write_text(t)
         print("MINDMAP.html готов")
-        EOF
-        ```
+        EOF        ```
+
+- Если в шаге 5 выбрано открытие в браузере — открой свежий MINDMAP.html:
+  `xdg-open` (Linux) или `open` (macOS).
 
 - [ ]   7. Если выбран сниппет — добавь в `AGENTS.md` (создай, если его нет) раздел:
 

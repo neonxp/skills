@@ -92,7 +92,7 @@ metadata:
 
         ```bash
         python3 - <<'EOF'
-        import pathlib, re
+        import base64, pathlib, re
         skill = pathlib.Path("<путь к каталогу скилла mindmap-sync>")
         t = (skill / "assets/template.html").read_text()
         md = pathlib.Path("MINDMAP.md").read_text()
@@ -106,10 +106,17 @@ metadata:
                       ("__MINDCODE_LIB__", "markmap-lib.js"), ("__MINDCODE_VIEW__", "markmap-view.js"),
                       ("__MINDCODE_TOOLBAR__", "markmap-toolbar.js")]:
             t = t.replace(ph, (skill / "assets" / f).read_text())
+        logo = "data:image/png;base64," + base64.b64encode(
+            (skill / "assets" / "icon.png").read_bytes()).decode()
+        t = t.replace("__MINDCODE_LOGO__", logo)
         pathlib.Path("MINDMAP.html").write_text(t)
         print("MINDMAP.html пересобран")
         EOF
         ```
+
+- Спроси пользователя инструментом вопроса с вариантами («Открыть в браузере» /
+  «Не сейчас»), открывать ли свежий MINDMAP.html; если да — открой его:
+  `xdg-open` (Linux) или `open` (macOS).
 
         Если `MINDMAP.html` не существует — не создавай его. Можно одной строкой упомянуть,
         что офлайн-просмотр собирается скиллом `mindmap-init`.

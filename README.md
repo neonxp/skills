@@ -1,14 +1,17 @@
-# Skills — мои скиллы для ИИ-агентов
+# CreoSkills — мои скиллы для ИИ-агентов
 
-Коллекция скиллов в открытом формате [Agent Skills](https://agentskills.io):
-каталог со `SKILL.md` и вспомогательными файлами. Верхняя директория репозитория —
-один устанавливаемый **набор** (может содержать несколько связанных скиллов).
+<img src="assets/icon.png" width="88" align="right" alt="Логотип CreoSkills">
+
+[CreoSkills](https://gitrepo.ru/neonxp/skills) — коллекция скиллов в открытом
+формате [Agent Skills](https://agentskills.io): каталог со `SKILL.md` и
+вспомогательными файлами. Верхняя директория репозитория — один устанавливаемый
+**набор** (может содержать несколько связанных скиллов).
 
 | Набор      | Скиллы                           | Назначение                                                                      |
 | ---------- | -------------------------------- | ------------------------------------------------------------------------------- |
 | `mindcode` | `mindmap-init`, `mindmap-sync` | ментальная карта кодовой базы: построение `MINDMAP.md` + актуализация после фич |
 | `task`     | `task-loop` | итеративный цикл малых задач: проблема → простейший подход → критерий готового → вертикальные срезы; между «тривиальностью» и sdd |
-| `sdd`      | `spec-init`, `spec-1-specify`, `spec-2-plan`, `spec-3-tasks`, `spec-4-implement`, `spec-5-verify`, `spec-6-archive` | спека до кода: настройка процесса (`rules.md`), цикл «спецификация → план → задачи → код → сверка → архив», артефакты в `specs/`, синергия с `mindcode` |
+| `sdd`      | `spec-1-specify`, `spec-2-plan`, `spec-3-tasks`, `spec-4-implement`, `spec-5-verify`, `spec-6-archive` | спека до кода: цикл «спецификация → план → задачи → код → сверка → архив», артефакты в `specs/` + витрина `specs/dashboard.html`, синергия с `mindcode` |
 
 ## rules.md — правила процесса проекта
 
@@ -40,11 +43,13 @@
 ## Быстро: одна команда
 
 ```sh
-# все наборы, без симлинков
+# все наборы (mindcode, sdd, task), без симлинков
 curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh
 
-# только набор mindcode
-curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- mindcode
+# один набор: mindcode | sdd | task
+# (за один запуск — один набор; несколько = запусти несколько раз)
+curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- sdd
+curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- task
 
 # всё + симлинки выбранным агентам (имена — как в --list, через запятую)
 curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- --agents "claude code,codex cli"
@@ -56,11 +61,11 @@ curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s
 
 ```sh
 git clone https://gitrepo.ru/neonxp/skills && cd skills
-./install.sh                          # все наборы
-./install.sh mindcode                 # один набор
+./install.sh                          # все наборы (mindcode, sdd, task)
+./install.sh sdd                      # один набор: mindcode | sdd | task
 ./install.sh --list                   # какие наборы и агенты есть
 ./install.sh --agents all             # + симлинки всем агентам-«симлинкам»
-./install.sh --remove mindcode        # снять набор (копии и симлинки)
+./install.sh --remove sdd             # снять набор (копии и симлинки)
 ./install.sh --remove --agents all    # снять всё, что ставили
 ```
 
@@ -72,6 +77,6 @@ git clone https://gitrepo.ru/neonxp/skills && cd skills
 Скопируйте своему агенту:
 
 > Склонируй https://gitrepo.ru/neonxp/skills во временную директорию и установи мне
-> набор mindcode, следуя README.md этого репозитория: `./install.sh mindcode`, а если
-> моему агенту нужен симлинк (список — `./install.sh --list`) — добавь `--agents "Имя"`.
-> В конце отчитайся: что и куда установлено.
+> набор sdd (другие: mindcode, task), следуя README.md этого репозитория:
+> `./install.sh sdd`, а если моему агенту нужен симлинк (список — `./install.sh --list`)
+> — добавь `--agents "Имя"`. В конце отчитайся: что и куда установлено.
