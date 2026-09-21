@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "title": "<Название работы>",
+  "description": "<Одна строка — что и зачем>",
+  "source": "",
+  "steps": {
+    "foundations": {
+      "type": "task",
+      "title": "<Фундамент: схемы, каркас, конфигурация>",
+      "parent": null,
+      "deps": [],
+      "status": "pending",
+      "prompt": "<Исчерпывающее ТЗ для исполнителя без контекста: файлы, поведение, крайние случаи>",
+      "criteria": ["command: <проверка>"],
+      "result": null,
+      "task": "T1",
+      "requires": [],
+      "phase": "Фундамент"
+    },
+    "gate": {
+      "type": "milestone",
+      "title": "<Ворота: интеграция блока>",
+      "parent": null,
+      "deps": ["foundations"],
+      "status": "pending",
+      "prompt": "<Короткое описание того, что ворота проверяют>",
+      "criteria": ["command: <дорогая интеграционная проверка>"],
+      "result": null,
+      "requires": []
+    }
+  }
+}
