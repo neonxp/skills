@@ -92,7 +92,8 @@ metadata:
         t = t.replace("__MINDCODE_LOGO__", logo)
         pathlib.Path("MINDMAP.html").write_text(t)
         print("MINDMAP.html готов")
-        EOF        ```
+        EOF
+        ```
 
 - Если в шаге 5 выбрано открытие в браузере — открой свежий MINDMAP.html:
   `xdg-open` (Linux) или `open` (macOS).
