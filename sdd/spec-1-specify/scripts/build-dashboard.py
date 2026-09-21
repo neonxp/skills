@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Собирает specs/dashboard.html — витрину активных изменений sdd.
+"""Собирает specs/dashboard.html — витрину изменений sdd.
 
 Использование (из корня проекта-потребителя):
     python3 <каталог скилла spec-1-specify>/scripts/build-dashboard.py [КОРЕНЬ]
 
 По умолчанию КОРЕНЬ = текущая директория. Сканирует specs/<изменение>/ (кроме
-_system/ и archive/), вычисляет фазу, статусы, открытые уточнения и прогресс,
-подставляет данные в assets/dashboard-template.html рядом со скриптом.
-Только Python 3 stdlib.
+_system/ и archive/) и specs/archive/ — закрытые изменения. Для каждого
+изменения собирает md-артефакты целиком, прогресс, уточнения и — если есть
+plan.json — его граф (детерминированно, без LLM). Рядом со скриптом нужны
+assets/dashboard-template.html, assets/marked.min.js, assets/icon.png и
+scripts/dashboard_parts.py. Только Python 3 stdlib.
 """
 import base64
 import json
@@ -16,8 +18,13 @@ import re
 import sys
 from datetime import datetime
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import dashboard_parts as parts  # noqa: E402
+
 PHASE_LABELS = {1: "Спека (черновик)", 2: "План", 3: "Задачи",
-                4: "Имплементация", 5: "Готов к закрытию"}
+                4: "Имплементация", 5: "Готов к закрытию", 6: "Закрыто"}
+DOCS = ("proposal.md", "spec.md", "plan.md", "tasks.md", "research.md")
+STATUS_KEYS = ("pending", "active", "done", "skipped", "failed")
 
 
 def read(path: pathlib.Path) -> str:
@@ -40,17 +47,40 @@ def checkboxes(text: str) -> dict:
 def title_of(text: str, fallback: str) -> str:
     for line in text.splitlines():
         if line.startswith("# "):
-            return re.sub(r"^#\s*", "", line).replace("Proposal:", "").replace("Спецификация:", "").strip()
+            return re.sub(r"^#\s*", "", line).replace(
+                "Proposal:", "").replace("Спецификация:", "").strip()
     return fallback
 
 
-def gather(change: pathlib.Path) -> dict:
+def plan_block(change: pathlib.Path) -> dict | None:
+    """Граф плана из plan.json: counts + готовый SVG. Никакой LLM-логики."""
+    path = change / "plan.json"
+    if not path.exists():
+        return None
+    try:
+        steps = json.loads(read(path))["steps"]
+        if not isinstance(steps, dict) or not steps:
+            raise ValueError("steps должен быть непустым объектом")
+    except Exception as e:  # битый JSON/структура — витрина жива, план с пометкой
+        return {"error": f"plan.json не разобран: {e}", "svg": "",
+                "counts": dict.fromkeys(STATUS_KEYS, 0), "total": 0}
+    counts = {key: sum(1 for s in steps.values()
+                       if s.get("status", "pending") == key)
+              for key in STATUS_KEYS}
+    svg = parts.plan_svg(steps)
+    error = "" if svg else "цикл в зависимостях — граф не построен"
+    return {"svg": svg, "error": error, "counts": counts, "total": len(steps)}
+
+
+def gather(change: pathlib.Path, archived: bool = False) -> dict:
     proposal = read(change / "proposal.md")
     spec = read(change / "spec.md")
     plan = read(change / "plan.md")
     tasks = read(change / "tasks.md")
     proposal_status = meta(proposal, "Статус").lower()
-    if tasks:
+    if archived:
+        phase = 6
+    elif tasks:
         phase = 4 if checkboxes(tasks)["done"] < checkboxes(tasks)["total"] else 5
     elif plan:
         phase = 3
@@ -60,7 +90,7 @@ def gather(change: pathlib.Path) -> dict:
         phase = 1
     return {
         "id": change.name,
-        "dir": change.name,  # дашборд лежит в specs/ — ссылки относительные от него
+        "dir": f"archive/{change.name}" if archived else change.name,
         "title": title_of(proposal, change.name),
         "phase": phase,
         "phaseLabel": PHASE_LABELS[phase],
@@ -70,10 +100,10 @@ def gather(change: pathlib.Path) -> dict:
         "openQuestions": re.findall(r"\[УТОЧНИТЬ:\s*([^\]]+)\]", spec),
         "tasks": checkboxes(tasks),
         "acceptance": checkboxes(spec),
-        "artifacts": [f for f in ("proposal.md", "spec.md", "plan.md", "tasks.md")
-                      if (change / f).exists()],
-        "proposalMd": proposal,
-        "specMd": spec,
+        "artifacts": [f for f in DOCS if (change / f).exists()],
+        "docs": [{"name": name, "md": read(change / name)}
+                 for name in DOCS if (change / name).exists()],
+        "plan": plan_block(change),
     }
 
 
@@ -87,11 +117,17 @@ def main() -> None:
         (here / "assets" / "icon.png").read_bytes()).decode()
     assert "</script" not in marked, "marked.min.js содержит </script — небезопасно инлайнить"
 
-    changes = sorted(d for d in specs_dir.glob("*/") if d.name not in ("_system", "archive")) \
+    active = sorted(d for d in specs_dir.glob("*/")
+                    if d.name not in ("_system", "archive")) \
         if specs_dir.exists() else []
+    archived = sorted((specs_dir / "archive").glob("*/")) \
+        if (specs_dir / "archive").exists() else []
     data = {
         "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "specs": [gather(c) for c in changes],
+        "mindmap": {"html": (root / "MINDMAP.html").exists(),
+                    "md": (root / "MINDMAP.md").exists()},
+        "specs": [gather(c) for c in active],
+        "archive": [gather(c, archived=True) for c in archived],
     }
     payload = json.dumps(data, ensure_ascii=False, indent=1).replace("</", "<\\/")
     html = (template
@@ -101,7 +137,8 @@ def main() -> None:
             .replace("__SDD_GENERATED__", data["generated"]))
     out = specs_dir / "dashboard.html"
     out.write_text(html, encoding="utf-8")
-    print(f"собрано: {out} ({len(data['specs'])} активн.)")
+    print(f"собрано: {out} ({len(data['specs'])} активн., "
+          f"{len(data['archive'])} в архиве)")
 
 
 if __name__ == "__main__":

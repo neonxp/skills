@@ -25,6 +25,7 @@
 		header h1 { font-size: 22px; display: flex; align-items: center; gap: 12px; }
 		header h1 .logo { height: 34px; width: auto; border-radius: 8px; }
 		header .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+		header .sub a { color: var(--link); }
 		.notice { max-width: 960px; margin: 0 auto 16px; font-size: 12.5px; color: var(--muted);
 			background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
 		nav.filters { max-width: 960px; margin: 0 auto 16px; display: flex; gap: 6px; flex-wrap: wrap; }
@@ -56,9 +57,21 @@
 		.files { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
 		.files a { font-family: ui-monospace, monospace; font-size: 12px; color: var(--link);
 			text-decoration: none; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
-		details { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; }
-		details summary { cursor: pointer; padding: 9px 12px; font-size: 13.5px; font-weight: 600; user-select: none; }
-		details .md { padding: 4px 16px 14px; font-size: 14px; line-height: 1.55; }
+		.tabs { display: flex; gap: 4px; margin-top: 14px; flex-wrap: wrap; }
+		.tab { border: 1px solid var(--line); border-bottom: none; background: var(--soft); color: var(--muted);
+			border-radius: 8px 8px 0 0; padding: 7px 13px; font-size: 12.5px; cursor: pointer; }
+		.tab.active { background: var(--card); color: var(--fg); font-weight: 600; position: relative; top: 1px; }
+		.docbody { border: 1px solid var(--line); border-radius: 0 8px 8px 8px; padding: 4px 16px 14px; }
+		.planbox { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; }
+		.planbox summary { cursor: pointer; padding: 9px 12px; font-size: 13.5px; font-weight: 600; user-select: none; }
+		.planwrap { overflow-x: auto; padding: 4px 10px 8px; }
+		.planwrap svg { width: 100%; height: auto; display: block; min-width: 560px; }
+		.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); padding: 0 12px 10px; }
+		.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+		.planerr { margin-top: 12px; font-size: 13px; color: var(--bad); }
+		details.raw { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; }
+		details.raw summary { cursor: pointer; padding: 9px 12px; font-size: 13.5px; font-weight: 600; user-select: none; }
+		.md { font-size: 14px; line-height: 1.55; }
 		.md h1 { font-size: 18px; margin: 12px 0 8px; } .md h2 { font-size: 16px; margin: 14px 0 6px; }
 		.md h3, .md h4 { font-size: 14.5px; margin: 12px 0 4px; }
 		.md p, .md ul, .md ol { margin: 6px 0; } .md ul, .md ol { padding-left: 22px; }
@@ -71,6 +84,10 @@
 		.md th, .md td { border: 1px solid var(--line); padding: 4px 9px; text-align: left; }
 		.md input[type=checkbox] { margin-right: 5px; }
 		.md a { color: var(--link); }
+		.arch { max-width: 960px; margin: 16px auto 0; border: 1px solid var(--line); border-radius: 12px;
+			background: var(--card); padding: 4px 16px 6px; }
+		.arch > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 10px 0; user-select: none; }
+		.arch .grid { display: grid; gap: 12px; padding: 4px 0 12px; }
 		footer { max-width: 960px; margin: 20px auto 0; color: var(--muted); font-size: 12px; }
 		footer a { color: var(--link); }
 	</style>
@@ -79,7 +96,7 @@
 <body>
 	<header>
 		<h1><img class="logo" src="__SDD_LOGO__" alt="CreoSkills">CreoSkills SDD — дашборд активных спек</h1>
-		<div class="sub">Сгенерировано: __SDD_GENERATED__</div>
+		<div class="sub">Сгенерировано: __SDD_GENERATED__ · <span id="mindmap"></span></div>
 	</header>
 	<div class="notice">Витрина только для чтения: правки вносите в файлы
 		<code>specs/&lt;изменение&gt;/*.md</code>, затем пересоберите дашборд.</div>
@@ -87,6 +104,10 @@
 	<div class="empty" id="empty" hidden>Активных изменений нет. Создайте первое:
 		<code>spec-1-specify</code>.</div>
 	<main id="cards"></main>
+	<details class="arch" id="arch" hidden>
+		<summary>Архив — закрытые изменения (<span id="archCount">0</span>)</summary>
+		<div class="grid" id="archCards"></div>
+	</details>
 	<footer>Сгенерировано с помощью <a href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener">CreoSkills</a> · набор sdd · источник истины — файлы specs/, этот файл — витрина.</footer>
 
 	<script>__SDD_MARKED__</script>
@@ -94,11 +115,14 @@
 	<script>
 		(() => {
 			const PHASES = ["Спека", "План", "Задачи", "Имплементация", "Готов к закрытию", "Закрыто"];
-			const { specs, generated } = JSON.parse(document.getElementById('data').textContent);
-			document.querySelector('.sub').textContent = 'Сгенерировано: ' + generated;
+			const { specs, archive, mindmap, generated } = JSON.parse(document.getElementById('data').textContent);
+			document.querySelector('.sub').innerHTML = 'Сгенерировано: ' + generated +
+				(mindmap.html ? ' · <a href="../MINDMAP.html">Карта проекта (MINDMAP.html)</a>'
+					: mindmap.md ? ' · <a href="../MINDMAP.md">Карта проекта (MINDMAP.md)</a>' : '');
 			const render = md => marked.parse(md, { breaks: false, gfm: true });
 			const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 			const cards = document.getElementById('cards'), filters = document.getElementById('filters');
+			const store = {}; let uid = 0;
 			let cur = 0;
 			const phasesPresent = [...new Set(specs.map(s => s.phase))].sort((a, b) => a - b);
 			const buttons = [[0, 'Все'], ...phasesPresent.map(p => [p, p + '. ' + PHASES[p - 1]])];
@@ -114,6 +138,31 @@
 				const list = specs.filter(s => !cur || s.phase === cur);
 				document.getElementById('empty').hidden = list.length > 0;
 				for (const s of list) cards.insertAdjacentHTML('beforeend', card(s));
+			}
+			function planBlock(s) {
+				const p = s.plan;
+				if (!p) return '';
+				if (p.error) return `<div class="planerr">План: ${esc(p.error)}</div>`;
+				if (!p.svg) return '';
+				const c = p.counts;
+				return `<details class="planbox" open><summary>План: ${c.done + c.skipped}/${p.total} шагов закрыто · активных ${c.active}</summary>
+					<div class="planwrap">${p.svg}</div>
+					<div class="legend">
+						<span><i style="background:var(--muted)"></i>pending</span>
+						<span><i style="background:var(--accent)"></i>active</span>
+						<span><i style="background:var(--ok)"></i>done / skipped</span>
+						<span><i style="background:var(--bad)"></i>failed</span>
+						<span>колонки — уровни исполнения, стрелки — зависимости</span>
+					</div></details>`;
+			}
+			function docsBlock(s) {
+				if (!s.docs.length) return '';
+				const id = 'd' + (++uid); store[id] = s;
+				const tabs = s.docs.map((d, i) =>
+					`<button class="tab${i ? '' : ' active'}" data-t="${id}" data-i="${i}">${d.name}</button>`).join('');
+				const bodies = s.docs.map((d, i) =>
+					`<div class="md docbody" data-t="${id}" data-i="${i}" ${i ? 'hidden' : ''}>${i ? '' : render(d.md)}</div>`).join('');
+				return `<div class="tabs">${tabs}</div>${bodies}`;
 			}
 			function card(s) {
 				const steps = PHASES.slice(0, 5).map((label, i) => {
@@ -131,6 +180,7 @@
 					<div class="head"><span class="id">${esc(s.id)}</span><h2>${esc(s.title)}</h2>
 						<span class="badges">
 							<span class="badge">Домен: ${esc(s.specDomain || '—')}</span>
+							${s.phase === 6 ? '<span class="badge ok">закрыто</span>' : ''}
 							${s.proposalStatus === 'согласовано' ? '' : '<span class="badge warn">спека: черновик</span>'}
 							${s.specStatus === 'согласовано' ? '<span class="badge ok">спека согласована</span>' : ''}
 							${s.openQuestions.length ? `<span class="badge warn">уточнения: ${s.openQuestions.length}</span>` : '<span class="badge ok">без уточнений</span>'}
@@ -140,11 +190,25 @@
 						<div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div>
 					<div class="meter"><span>Критерии приёмки ${s.acceptance.done}/${s.acceptance.total}</span>
 						<div class="bar"><i style="width:${apct}%"></i></div><span>${apct}%</span></div>
-					${q}
+					${q}${planBlock(s)}${docsBlock(s)}
 					<div class="files">${files}</div>
-					<details><summary>Зачем — proposal</summary><div class="md">${render(s.proposalMd)}</div></details>
-					<details><summary>Спека — требования и сценарии</summary><div class="md">${render(s.specMd)}</div></details>
 				</section>`;
+			}
+			document.addEventListener('click', e => {
+				const b = e.target.closest('.tab'); if (!b) return;
+				const t = b.dataset.t;
+				document.querySelectorAll(`.tab[data-t="${t}"]`).forEach(x => x.classList.toggle('active', x === b));
+				document.querySelectorAll(`.docbody[data-t="${t}"]`).forEach(x => {
+					const on = x.dataset.i === b.dataset.i;
+					x.hidden = !on;
+					if (on && !x.dataset.done) { x.innerHTML = render(store[t].docs[+x.dataset.i].md); x.dataset.done = 1; }
+				});
+			});
+			const arch = document.getElementById('arch');
+			if (archive.length) {
+				arch.hidden = false;
+				document.getElementById('archCount').textContent = archive.length;
+				document.getElementById('archCards').innerHTML = archive.map(card).join('');
 			}
 			show();
 		})();
