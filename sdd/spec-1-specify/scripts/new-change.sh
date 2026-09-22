@@ -25,7 +25,7 @@ case $name in
 	;;
 esac
 
-dir="specs/$name"
+dir=".specs/$name"
 if [ -e "$dir" ]; then
 	echo "ошибка: $dir уже существует — для обновления правь файлы на месте" >&2
 	exit 1

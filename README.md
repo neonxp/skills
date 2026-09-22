@@ -5,8 +5,8 @@
 [CreoSkills](https://gitrepo.ru/neonxp/skills) — коллекция скиллов в открытом
 формате [Agent Skills](https://agentskills.io): каталог со `SKILL.md` и
 вспомогательными файлами. Устанавливаемый **набор** — верхняя директория со
-скиллами (напр. `sdd/`, `mindcode/`); она может содержать несколько связанных
-скиллов. `spec/` — справочник формата, не набор.
+скиллами (напр. `sdd/`, `task/`, `mindmap/`); она может содержать несколько связанных скиллов. `spec/` —
+справочник формата, не набор.
 
 > 🗺️ **Начинаете с репозиторием?** Откройте [MINDMAP.md](MINDMAP.md) —
 > ментальную карту: что за наборы, как связаны, что где лежит
@@ -15,10 +15,14 @@
 
 | Набор      | Скиллы                                                                                                 | Назначение                                                                                                                                                                            |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mindcode` | `mindmap-init`, `mindmap-sync`                                                                         | ментальная карта кодовой базы: построение `MINDMAP.md` + актуализация после фич                                                                                                       |
+| `mindmap`  | `mindmap-init`, `mindmap-sync`                                                                         | ментальная карта кодовой базы: построение `MINDMAP.md` + актуализация после фич                                                                                                       |
 | `task`     | `task-loop`                                                                                            | итеративный цикл малых задач: проблема → простейший подход → критерий готового → вертикальные срезы; между «тривиальностью» и sdd                                                     |
-| `sdd`      | `spec-1-specify`, `spec-2-plan`, `spec-3-tasks`, `spec-4-implement`, `spec-5-verify`, `spec-6-archive` | спека до кода: цикл «спецификация → план → задачи → код → сверка → архив», артефакты в `specs/` + витрина `specs/dashboard.html`, синергия с `mindcode`                               |
-| `plan`     | `plan`                                                                                                 | модуль DAG-планирования: `plan.json` в проекте + детерминированный `plan.py` (циклы, готовность, порядок, прогресс, sync задач); потребители — sdd, task-loop, итеративная разработка |
+| `sdd`      | `spec-1-specify`, `spec-2-plan`, `spec-3-tasks`, `spec-4-implement`, `spec-5-verify`, `spec-6-archive` | спека до кода: цикл «спецификация → план → задачи → код → сверка → архив», артефакты в `.specs/` + витрина `.specs/dashboard.html`, синергия с `mindmap`                              |
+
+**Модуль `plan`** — не набор, а переиспользуемая зависимость потребителей:
+модуль DAG-планирования (`plan.json` в проекте + детерминированный `plan.py`:
+циклы, готовность, порядок, прогресс, sync задач). Живёт в `sdd/plan/` и
+`task/plan/` и ставится установщиком вместе с набором-потребителем.
 
 ## Как работает установка
 
@@ -34,10 +38,10 @@
 ## Быстро: одна команда
 
 ```sh
-# все наборы (mindcode, sdd, task, plan), без симлинков
+# все наборы (mindmap, sdd, task), без симлинков
 curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh
 
-# один набор: mindcode | sdd | task | plan
+# один набор: mindmap | sdd | task
 # (за один запуск — один набор; несколько = запусти несколько раз)
 curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- sdd
 curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s -- task
@@ -52,8 +56,9 @@ curl -fsSL https://gitrepo.ru/neonxp/skills/raw/branch/master/install.sh | sh -s
 
 ```sh
 git clone https://gitrepo.ru/neonxp/skills && cd skills
-./install.sh                          # все наборы (mindcode, sdd, task, plan)
-./install.sh sdd                      # один набор: mindcode | sdd | task | plan
+
+./install.sh                          # все наборы (mindmap, sdd, task)
+./install.sh sdd                      # один набор: mindmap | sdd | task (sdd и task ставят и модуль plan)
 ./install.sh --list                   # какие наборы и агенты есть
 ./install.sh --agents all             # + симлинки всем агентам-«симлинкам»
 ./install.sh --remove sdd             # снять набор (копии и симлинки)
@@ -68,7 +73,7 @@ git clone https://gitrepo.ru/neonxp/skills && cd skills
 Скопируйте своему агенту:
 
 > Склонируй https://gitrepo.ru/neonxp/skills во временную директорию и установи мне
-> набор sdd (другие: mindcode, task, plan), следуя README.md этого репозитория:
+> набор sdd (другие: mindmap, task), следуя README.md этого репозитория:
 > `./install.sh sdd`, а если моему агенту нужен симлинк (список — `./install.sh --list`)
 > — добавь `--agents "Имя"`. В конце отчитайся: что и куда установлено.
 
@@ -84,7 +89,7 @@ git clone https://gitrepo.ru/neonxp/skills && cd skills
 
 ## Главный принцип — приоритет
 
-Инструкции из `rules.md` **превалируют над любым скиллом** (`sdd`, `mindcode`,
+Инструкции из `rules.md` **превалируют над любым скиллом** (`sdd`, `mindmap`,
 `plan`, `task`) — даже если полностью противоречат ему. Например, если скилл
 говорит «закоммить логическую группу», а в `rules.md` написано «агент не делает
 коммитов — только предлагает изменения», агент подчинится `rules.md`.

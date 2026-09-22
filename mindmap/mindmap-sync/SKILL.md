@@ -100,15 +100,15 @@ metadata:
         mt = fm and re.search(r"^title:\s*(.+)$", fm.group(1), re.M)
         title = mt.group(1).strip() if mt else next(
             l.lstrip("# ").strip() for l in md.splitlines() if l.startswith("# "))
-        t = t.replace("__MINDCODE_TITLE__", title)
-        t = t.replace("__MINDCODE_MARKDOWN__", md)
-        for ph, f in [("__MINDCODE_CSS__", "style.css"), ("__MINDCODE_D3__", "d3.min.js"),
-                      ("__MINDCODE_LIB__", "markmap-lib.js"), ("__MINDCODE_VIEW__", "markmap-view.js"),
-                      ("__MINDCODE_TOOLBAR__", "markmap-toolbar.js")]:
+        t = t.replace("__MINDMAP_TITLE__", title)
+        t = t.replace("__MINDMAP_MARKDOWN__", md)
+        for ph, f in [("__MINDMAP_CSS__", "style.css"), ("__MINDMAP_D3__", "d3.min.js"),
+                      ("__MINDMAP_LIB__", "markmap-lib.js"), ("__MINDMAP_VIEW__", "markmap-view.js"),
+                      ("__MINDMAP_TOOLBAR__", "markmap-toolbar.js")]:
             t = t.replace(ph, (skill / "assets" / f).read_text())
         logo = "data:image/png;base64," + base64.b64encode(
             (skill / "assets" / "icon.png").read_bytes()).decode()
-        t = t.replace("__MINDCODE_LOGO__", logo)
+        t = t.replace("__MINDMAP_LOGO__", logo)
         pathlib.Path("MINDMAP.html").write_text(t)
         print("MINDMAP.html пересобран")
         EOF

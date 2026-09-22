@@ -11,7 +11,7 @@
     "description": { "type": "string" },
     "source": {
       "type": "string",
-      "description": "Каталог спеки (specs/<id>-<slug>) или происхождение плана"
+      "description": "Каталог спеки (.specs/<id>-<slug>) или происхождение плана"
     },
     "steps": {
       "type": "object",

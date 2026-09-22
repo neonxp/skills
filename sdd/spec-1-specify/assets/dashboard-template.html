@@ -99,7 +99,7 @@
 		<div class="sub">Сгенерировано: __SDD_GENERATED__ · <span id="mindmap"></span></div>
 	</header>
 	<div class="notice">Витрина только для чтения: правки вносите в файлы
-		<code>specs/&lt;изменение&gt;/*.md</code>, затем пересоберите дашборд.</div>
+		<code>.specs/&lt;изменение&gt;/*.md</code>, затем пересоберите дашборд.</div>
 	<nav class="filters" id="filters"></nav>
 	<div class="empty" id="empty" hidden>Активных изменений нет. Создайте первое:
 		<code>spec-1-specify</code>.</div>
@@ -108,7 +108,7 @@
 		<summary>Архив — закрытые изменения (<span id="archCount">0</span>)</summary>
 		<div class="grid" id="archCards"></div>
 	</details>
-	<footer>Сгенерировано с помощью <a href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener">CreoSkills</a> · набор sdd · источник истины — файлы specs/, этот файл — витрина.</footer>
+	<footer>Сгенерировано с помощью <a href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener">CreoSkills</a> · набор sdd · источник истины — файлы .specs/, этот файл — витрина.</footer>
 
 	<script>__SDD_MARKED__</script>
 	<script id="data" type="application/json">__SDD_DASHBOARD_DATA__</script>
@@ -211,6 +211,34 @@
 				document.getElementById('archCards').innerHTML = archive.map(card).join('');
 			}
 			show();
+		})();
+	</script>
+	<script>
+		// Живое обновление: после пересборки открытая вкладка перечитывает файл сама.
+		(() => {
+			const KEY = 'sdd-live';
+			const read = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+			const save = (k, v) => { try { const s = read(); s[k] = v;
+				sessionStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
+			document.addEventListener('click', e => {
+				const f = e.target.closest('.filters button');
+				if (f) save('filter', [...f.parentElement.children].indexOf(f));
+				const t = e.target.closest('.tab');
+				if (t) save('tab:' + t.dataset.t, t.dataset.i);
+			});
+			addEventListener('pagehide', () => save('scroll', scrollY));
+			addEventListener('load', () => {
+				const s = read();
+				if (s.filter) document.querySelectorAll('.filters button')[s.filter]?.click();
+				for (const [k, i] of Object.entries(s)) if (k.startsWith('tab:'))
+					document.querySelector(`.tab[data-t="${k.slice(4)}"][data-i="${i}"]`)?.click();
+				if (s.scroll) scrollTo(0, s.scroll);
+			});
+			const refresh = () => { if (document.visibilityState === 'visible') location.reload(); };
+			document.addEventListener('visibilitychange', () => {
+				if (document.visibilityState === 'visible') refresh();
+			});
+			setInterval(refresh, 5000);
 		})();
 	</script>
 </body>

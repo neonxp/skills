@@ -34,7 +34,7 @@ specify → plan → [tasks] → implement → verify → archive
 
 ## Workflow
 
-- [ ]   1. Открой `specs/<id>-<slug>/`: plan.md обязателен, спека — источник [R#].
+- [ ]   1. Открой `.specs/<id>-<slug>/`: plan.md обязателен, спека — источник [R#].
        План-файла нет, а изменение крупное — вернись к `spec-2-plan`.
 
 - [ ]   2. Заполни `tasks.md` по шаблону [templates/tasks.md](templates/tasks.md):
@@ -84,8 +84,9 @@ specify → plan → [tasks] → implement → verify → archive
 
 - [ ]   8. Пересобери дашборд витрины: `python3 <каталог скилла spec-1-specify>/scripts/build-dashboard.py`.
 
-       Если в системе есть `xdg-open` (Linux) или `open` (macOS) — сразу открой
-       свежий дашборд в браузере.
+       Если в системе есть `xdg-open` (Linux) или `open` (macOS) и дашборд ещё
+       не открыт — открой его: открытая вкладка обновляется сама при
+       пересборках, новые вкладки не открывай.
 
 - [ ]   9. Отчитайся: путь к tasks.md (и plan.json, если собран), число задач по
        фазам и явно сообщи следующий шаг: «Следующий этап — имплементация.

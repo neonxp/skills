@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Собирает specs/dashboard.html — витрину изменений sdd.
+"""Собирает .specs/dashboard.html — витрину изменений sdd.
 
 Использование (из корня проекта-потребителя):
     python3 <каталог скилла spec-1-specify>/scripts/build-dashboard.py [КОРЕНЬ]
 
-По умолчанию КОРЕНЬ = текущая директория. Сканирует specs/<изменение>/ (кроме
-_system/ и archive/) и specs/archive/ — закрытые изменения. Для каждого
+По умолчанию КОРЕНЬ = текущая директория. Сканирует .specs/<изменение>/ (кроме
+_system/ и archive/) и .specs/archive/ — закрытые изменения. Для каждого
 изменения собирает md-артефакты целиком, прогресс, уточнения и — если есть
 plan.json — его граф (детерминированно, без LLM). Рядом со скриптом нужны
 assets/dashboard-template.html, assets/marked.min.js, assets/icon.png и
@@ -109,7 +109,7 @@ def gather(change: pathlib.Path, archived: bool = False) -> dict:
 
 def main() -> None:
     root = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path()
-    specs_dir = root / "specs"
+    specs_dir = root / ".specs"
     here = pathlib.Path(__file__).resolve().parent.parent  # каталог скилла
     template = read(here / "assets" / "dashboard-template.html")
     marked = read(here / "assets" / "marked.min.js")

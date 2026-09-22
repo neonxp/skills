@@ -10,7 +10,13 @@ markmap:
 
 ## Слои и домены
 
-### Набор mindcode — ментальная карта кодовой базы
+### Корень-агрегатор — сервисный репозиторий CreoSkills
+
+- мета, установщик `install.sh`, документация, ассеты
+- наборы подключены git-сабмодулями организации `creo` на gitrepo.ru
+- каталога `plan/` в корне нет — модуль живёт внутри потребителей
+
+### Набор mindmap (сабмодуль skill-mindmap) — ментальная карта кодовой базы
 
 #### `mindmap-init` — первичное построение карты проекта
 
@@ -28,7 +34,7 @@ markmap:
 - template.html + markmap-lib/view/toolbar + d3.min.js — инлайнится целиком
 - icon.png — логотип CreoSkills, встраивается data:URI
 
-### Набор sdd — спека до кода (Spec-Driven Development)
+### Набор sdd (сабмодуль skill-sdd) — спека до кода (Spec-Driven Development)
 
 #### Шесть скиллов-этапов цикла
 
@@ -37,9 +43,9 @@ markmap:
 - spec-3-tasks — tasks.md: фазы, трассировка [R#], параллельные [P], проверки
 - spec-4-implement — исполнение по задачам; режим плана через plan.json
 - spec-5-verify — сверка кода со спекой, вердикт «готов к закрытию»
-- spec-6-archive — архив в specs/archive/, дельты требований в specs/_system
+- spec-6-archive — архив в .specs/archive/, дельты требований в .specs/_system
 
-#### Витрина specs/dashboard.html
+#### Витрина .specs/dashboard.html
 
 - build-dashboard.py — скан активных и архива, вся сборка детерминирована
 - dashboard_parts.py — уровни плана (Кан) и SVG-граф зависимостей
@@ -49,7 +55,10 @@ markmap:
 
 - proposal, spec, plan, tasks, research — источник истины формы
 
-### Набор plan — модуль DAG-планирования
+### Модуль plan (mod-plan) — DAG-планирование
+
+- не набор, а зависимость потребителей: сабмодуль `plan/` внутри skill-sdd и skill-task
+- устанавливается вместе с набором-потребителем, сам по себе не ставится
 
 #### `plan.py` — детерминированная механика графа
 
@@ -61,29 +70,30 @@ markmap:
 - шаги: type task/research/milestone, исчерпывающий prompt, criteria, deps, parent
 - статусы pending/active/done/skipped/failed; человекочитаемые slug-id
 
-### Набор task — малые задачи
+### Набор task (сабмодуль skill-task) — малые задачи
 
 #### `task-loop` — итеративный цикл без спеки
 
 - формулировка до действия: проблема, простейший подход, критерий готового
-- вертикальные срезы с проверкой; пороги входа в sdd и в план-модуль
+- вертикальные срезы с проверкой; пороги входа в sdd и в модуль plan
 
 ## Ключевые потоки
 
 ### Цикл изменения (sdd)
 
 - spec-1 спека → spec-2 техплан → spec-3 задачи → spec-4 код → spec-5 сверка → spec-6 архив
-- каждый этап пересобирает витрину dashboard.html
+- каждый этап пересобирает витрину .specs/dashboard.html
 
 ### Мост sdd → план
 
 - spec-3 собирает plan.json (≥3 задач или есть [P]) рядом с tasks.md
 - spec-4 в режиме плана: plan.py next → работа → criteria → set → sync
+- plan.py берётся из сабмодуля потребителя (`sdd/plan/`, `task/plan/`) или из `~/.agents/skills/plan`
 
 ### Сборка витрины
 
-- specs/*/md-артефакты + specs/archive/ + plan.json → build-dashboard.py
-- выход: self-contained specs/dashboard.html (offline, табы, граф, архив)
+- .specs/<изменение>/md-артефакты + .specs/archive/ + plan.json → build-dashboard.py
+- выход: self-contained .specs/dashboard.html (offline, табы, граф, архив)
 
 ### Жизненный цикл карты
 
@@ -92,8 +102,9 @@ markmap:
 
 ### Установка наборов
 
-- install.sh [набор] → копия в ~/.agents/skills (источник истины)
-- --agents — симлинки в директории агентов из таблицы AGENTS.md
+- клон с `--recurse-submodules` (наборы — сабмодули) → `install.sh [набор]` → копия в ~/.agents/skills
+- `--agents` — симлинки в директории агентов из таблицы AGENTS.md
+- модуль plan ставится вместе с набором-потребителем (sdd или task)
 
 ## Кросс-функциональное
 
@@ -107,40 +118,41 @@ markmap:
 - скрипты — только Python stdlib; HTML-артефакты — self-contained, без CDN
 - тексты скиллов на русском, идентификаторы и слаги — латиницей
 - брендинг: icon.png инлайнится в дашборд и mindmap-просмотрщик
+- артефакты изменений — в скрытой `.specs/`, не коммитятся (в .gitignore)
 
 ## Структура файлов
 
-### Корень
+### Корень — только сервисное
 
-- `README.md` — наборы, установка, правила репозитория
+- `README.md` — наборы-сабмодули, установка, правила репозитория
 - `AGENTS.md` — правила разработки скиллов и таблица директорий агентов
 - `install.sh` — установщик: один набор или все, симлинки по --agents
-- `.gitignore` — pycache и производные
+- `.gitignore` — pycache, производные, `.specs/`
+- `.gitmodules` — сабмодули наборов (skill-sdd, skill-task, skill-mindmap)
 - `assets/icon.png` — логотип CreoSkills
 
 ### `spec/`
 
 - `1_overview.md` … `7_using_scripts.md` — справочник формата Agent Skills
 
-### `mindcode/`
+### `.specs/` — артефакты изменений sdd (не коммитится)
+
+- `<id>-<slug>/` — каталог изменения: proposal, spec, plan, tasks, research, plan.json
+- `_system/` — накопительные спеки доменов; `archive/` — закрытые изменения
+- `dashboard.html` — витрина, собирается build-dashboard.py
+
+### `mindmap/` — сабмодуль skill-mindmap
 
 - `mindmap-init/` — SKILL.md, references/format.md, assets/ (шаблон карты, просмотрщик)
 - `mindmap-sync/` — SKILL.md, тот же набор assets просмотрщика
 
-### `sdd/`
+### `sdd/` — сабмодуль skill-sdd
 
-- `spec-1-specify/` — SKILL.md, assets/ (дашборд, marked.min.js, icon), scripts/ (сборка витрины), templates/
-- `spec-2-plan/` — SKILL.md, templates/plan.md
-- `spec-3-tasks/` — SKILL.md, templates/tasks.md
-- `spec-4-implement/`, `spec-5-verify/`, `spec-6-archive/` — SKILL.md
+- `spec-1-specify/` — SKILL.md, assets/ (дашборд, marked.min.js, icon), scripts/ (сборка витрины, new-change.sh), templates/
+- `spec-2-plan/` … `spec-6-archive/` — SKILL.md (+ templates у spec-2/spec-3)
+- `plan/` — сабмодуль mod-plan (SKILL.md, scripts/plan.py, schemas/, templates/)
 
-### `task/`
+### `task/` — сабмодуль skill-task
 
 - `task-loop/SKILL.md` — единственный скилл набора
-
-### `plan/`
-
-- `plan/SKILL.md` — справочник модуля для потребителей
-- `plan/scripts/plan.py` — CLI механики DAG
-- `plan/schemas/plan.schema.json` — строгая JSON Schema плана
-- `plan/templates/plan.json` — каркас плана
+- `plan/` — сабмодуль mod-plan

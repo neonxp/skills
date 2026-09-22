@@ -15,7 +15,7 @@ jobs:
       PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Забор репозитория
-        run: git clone --depth 1 "${CI_REPOSITORY_URL:-https://gitrepo.ru/neonxp/skills.git}" /srv/skills
+        run: git clone --depth 1 --recurse-submodules --shallow-submodules "${CI_REPOSITORY_URL:-https://gitrepo.ru/neonxp/skills.git}" /srv/skills
 
       - name: Установка skills-ref (вендоренная копия)
         run: python3 -m pip install --break-system-packages /srv/skills/.forgejo/vendor/skills-ref

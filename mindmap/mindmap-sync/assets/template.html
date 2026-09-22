@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>__MINDCODE_TITLE__</title>
+	<title>__MINDMAP_TITLE__</title>
 	<style>
 		* {
 			margin: 0;
@@ -37,30 +37,28 @@
 		.creo-badge img { height: 24px; width: auto; border-radius: 5px; }
 	</style>
 	<style>
-__MINDCODE_CSS__
+__MINDMAP_CSS__
 	</style>
 </head>
 
 <body>
-	<a class="creo-badge" href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener"><img src="__MINDCODE_LOGO__" alt="CreoSkills">CreoSkills</a>
-	<script id="mindcode-md" type="text/markdown">
-__MINDCODE_MARKDOWN__
+	<a class="creo-badge" href="https://gitrepo.ru/neonxp/skills" target="_blank" rel="noopener"><img src="__MINDMAP_LOGO__" alt="CreoSkills">CreoSkills</a>
+	<script id="mindmap-md" type="text/markdown">
+__MINDMAP_MARKDOWN__
 	</script>
 	<svg id="mindmap"></svg>
-	<script>__MINDCODE_D3__</script>
-	<script>__MINDCODE_LIB__</script>
-	<script>__MINDCODE_VIEW__</script>
-	<script>__MINDCODE_TOOLBAR__</script>
+	<script>__MINDMAP_D3__</script>
+	<script>__MINDMAP_LIB__</script>
+	<script>__MINDMAP_VIEW__</script>
+	<script>__MINDMAP_TOOLBAR__</script>
 	<script>
 		(() => {
-			const md = document.getElementById('mindcode-md').textContent.trimStart();
+			const md = document.getElementById('mindmap-md').textContent;
 			const { Transformer, Markmap, deriveOptions, Toolbar } = window.markmap;
-			const { root, frontmatter } = new Transformer().transform(md);
+			const { root } = new Transformer([]).transform(md);
 			const mm = Markmap.create('svg#mindmap', deriveOptions({
 				colorFreezeLevel: 2,
 				maxWidth: 300,
-				initialExpandLevel: 3,
-				...(frontmatter && frontmatter.markmap),
 			}), root);
 			mm.fit();
 			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
